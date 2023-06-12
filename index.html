@@ -1,12 +1,171 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Epigraphy Browser</title>
+
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <!--<link href="css/bootstrap-icons.css" rel="stylesheet" />-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.2/font/bootstrap-icons.css" integrity="sha384-eoTu3+HydHRBIjnCVwsFyCpUDZHZSFKEJD0mc3ZqSBSb6YhZzRHeiomAUWCstIWo" crossorigin="anonymous">
+
+    <link href="css/yasgui-pro.min.css" rel="stylesheet" />
+    <script src="js/yasgui-pro.min.js"></script>
+
+    <link href="css/pagination.css" rel="stylesheet" />
+
+    <link href="css/style.css" rel="stylesheet" />
 </head>
 <body>
-    This is Epigraphy Browser Project
+    <nav class="navbar navbar-expand-sm bg-light navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img style="height: 50px;width: 50px;" src="images/FAIRlogo.png" alt="inscriptiones.org">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="collapsibleNavbar">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <span class="nav-link active" onclick="navigatePage('home', this)">Home</span>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link" onclick="navigatePage('browse', this)">Browse</span>
+                    </li>
+                    <li>
+                        <span class="nav-link" onclick="navigatePage('all in one', this)">All in One</span>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link" onclick="navigatePage('sparql', this)">SPARQL</span>
+                    </li>
+                </ul>
+                <form class="d-flex">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search IDs">
+                        <button class="btn btn-outline-secondary" type="button" id="button-addon2">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3" id="content-place">
+
+    </div>
+
+    <footer>
+        <div class="container-fluid">
+            <p class="text-muted">
+                <!--<a href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/88x31.png"></a><br>Unless specified otherwise, content in <a xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://nomisma.org">Nomisma.org</a> is licensed under a <a xmlns:cc="http://creativecommons.org/ns#" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a>.-->
+                inscriptiones.org
+            </p>
+        </div>
+    </footer>
+
+    <!-- Parent Jquery -->
+    <script type="text/javascript" src="js/jquery-latest.min.js"></script>
+
+    <!-- Map APIs -->
+    <script src="//maps.googleapis.com/maps/api/js?libraries=geometry,visualization,places&amp;language=en&amp;v=3.23&amp;key=AIzaSyAsmeOloQ8Bgw413D9YoLEGbmQefPIBYcg"></script>
+
+    <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=AnOaryydl-Jd2yCFF8jL91x2YYdv9KxzJNRMfeea8dVaGSZcBGTgKxoaZd8jckDG'></script>
+
+    <!-- JavaScript Bundle with Popper -->
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+
+    <!-- SPARQL Library (v2.2.1) -->
+    <script src="js/comunica-browser.js"></script>
+
+    <script src="js/pagination.min.js"></script>
+
+    <!-- RDF Library -->
+    <script src="js/n3.min.js"></script>
+
+    <!-- Convert EpiDoc XML to Leident Text -->
+    <script src="js/convertToLeiden.js"></script>
+
+
+    <!-- Custome Javascript files-->
+    <script src="js/Utility.js"></script>
+
+    <script>
+        if (window.location.href.split('#').length > 1) {
+            if (window.location.href.split('#')[1] === "")
+                navigatePage('sparql', null)
+            else
+                navigatePage(window.location.href.split('#')[1], null)
+        }
+        else {
+            $('#content-place').load('about.html')
+        }
+
+        function navigatePage(pageName, control) {
+            if (pageName === 'home') {
+                $('#content-place').load('about.html')
+            }
+            else if (pageName === 'browse') {
+                $('#content-place').load('browse.html')
+            }
+            else if (pageName.replaceAll('_', ' ') === 'all in one') {
+                $('#content-place').load('all_in_one.html')
+            }
+            else if (pageName === 'sparql') {
+                $('#content-place').load('sparql.html')
+            }
+
+            $('.nav-link').removeClass('active');
+            if (control !== null)
+                $(control).addClass('active')
+            else {
+                let all = $('.nav-link');
+                let active = Array.from(all).filter(x =>
+                    $(x).html().toLowerCase() === pageName
+                )
+
+                $(active[0]).addClass('active')
+            }
+
+            changeurl(pageName);
+        }
+
+        function changeurl(pageName) {
+            var new_url = get_hostname(window.location.href);
+            if (pageName === 'home')
+                new_url = get_hostname(window.location.href);
+            else
+                new_url = `${get_hostname(window.location.href)}#${pageName.replaceAll(" ", "_")}`;
+
+            window.history.pushState("data", "Title", new_url);
+            document.title = `inscriptiones.org | ${pageName.toUpperCase()}`;
+        }
+
+        function get_hostname(url) {
+            var m;
+            if (url.indexOf('https') !== -1)
+                m = url.match(/^https:\/\/[^/]+/);
+            else
+                m = url.match(/^http:\/\/[^/]+/);
+
+            return m ? m[0] : null;
+        }
+
+        window.onhashchange = function (event) {
+            if (window.location.href.split('#').length > 1) {
+                if (window.location.href.split('#')[1] === "") {
+                    if (event.oldURL.indexOf('sparql') === -1)
+                        navigatePage('sparql', null)
+                }
+                else
+                    navigatePage(window.location.href.split('#')[1], null)
+            }
+            else {
+                $('#content-place').load('about.html')
+            }
+        };
+        //////////////////////////////////////////////////////
+    </script>
 </body>
 </html>
