@@ -47,56 +47,55 @@ $('#btnText').click(() => {
 getRelations(inscription.tmId, '#closeMatch');
 ///////////////////////////////////////////////////////////////////////
 //// Show Map
-initMap();
+
+setTimeout(() => {
+    map = new Microsoft.Maps.Map('#map', {});
+    initMap();
+}, 300);
 
 async function initMap() {
     if (inscription.geo !== undefined) {
         let lat_lng = inscription.geo.split(',')
-        showGoogleMap(lat_lng);
+        //showGoogleMap(lat_lng);
+        showBingMap(lat_lng);
     }
     else {
         lat_lng = await getLatLng(inscription.foundAt);
-        if (lat_lng !== undefined && lat_lng !== null && lat_lng.length > 0) {
-            showGoogleMap(lat_lng);
-        }
-        else {
-            setTimeout(() => {
-                var map = new Microsoft.Maps.Map('#map');
-                let searchManager;
-                loadModuleMap(searchManager, map);
-            }, 400)
-        }
+        showBingMap(lat_lng);
+        // if (lat_lng !== undefined && lat_lng !== null && lat_lng.length > 0) {
+        //     showGoogleMap(lat_lng);
+        // }
+        // else {
+        //     setTimeout(() => {
+        //         var map = new Microsoft.Maps.Map('#map');
+        //         let searchManager;
+        //         loadModuleMap(searchManager, map);
+        //     }, 400)
+        // }
     }
 }
 
-function loadModuleMap(searchManager, map) {
-    if (!searchManager) {
-        Microsoft.Maps.loadModule('Microsoft.Maps.Search', function () {
-            searchManager = new Microsoft.Maps.Search.SearchManager(map);
-            loadModuleMap(searchManager, map);
-        })
-    }
-    else {
-        //let map = new Microsoft.Maps.Map('#map');
-        map.entities.clear();
-        let searchRequest = {
-            where: inscription.geoName,
-            callback: function (r) {
-                if (r.results) {
+function showBingMap(lat_lng) {
+    //let map = new Microsoft.Maps.Map('#map');
+    const myLatLng = { lat: parseFloat(lat_lng[0]), lng: parseFloat(lat_lng[1]) };
+    map.setView({
+        center: new Microsoft.Maps.Location(myLatLng.lat, myLatLng.lng),
+        zoom: 10
+    });
+    map.entities.clear();
+    var center = map.getCenter();
+    var width = 30; // Change this value to your desired width
+    var height = 40; // Change this value to your desired height
 
-                    let pin = new Microsoft.Maps.Pushpin(r.results[0].location);
-                    map.entities.push(pin);
-                    map.setView({
-                        bounds: r.results[0].bestView,
-                        //zoom: 9
-                    });
-                    //map.setView({ zoom: 10 });
-                }
-            }
-        };
+    //Create custom Pushpin
+    var pin = new Microsoft.Maps.Pushpin(center, {
+        icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADQAAABKBAMAAAAGfmppAAAAKlBMVEVHcEzGIh7FIh/FIh/FIh/FIh7GIh/FIh/OKiTZMyrjPDDqQzXEIR20FBLVR2YzAAAADXRSTlMAMmqaxub/Tv////8SksoI7QAAAexJREFUeAF9k4FHA2EUwN9qE4SjGoCIAFQIhBUFQsgFwdbubbcVofYnjEwAJxLAsANgdveJSP0JKbn/pXZ739vt3tt+YPPb3vf7vrsPmMLWseud7zkgWHMxxdvNmzvEh4ExgyfEo1mzjn5oUuIAD7PmHR8M84QHmQLXNxmCusPqvknTiG4DiBV8NjNEeEuqw+N4ZINW4j8xkeek6sM3guAyVfs9qUZXk3lGIQ0p+ZrqV8Z9PU2Nxo0noabiOkChOc1KkunwrgPL/O0l+eeHf7cDpbadnqTYlYdnULafHyfq2/6yCtt0SlFC2O812KePr1b9krqidoqgEKp3afaNVV9mgscqYVjhPIWLlBuSyq0Ve6xuhJobH9UXbXm7px/UqAbltn68wyqUWvpD6Z8tepQF1F8AdABOxGtN7QCdtqaGDQAo+poKKuntChWFzuLroF6i/iWAPjGmG8sTxTyAYlP0nZJadZ/lVSbKrVxEAyxLuRDcJCFCOEKGcIQIibw3yLDhZyKqQORPJLYRHNKWESKEI0RIzBFMp8VPPs8yTexWhKKJvCk5cViThhqDCkgKGI736whBxz+qg0a5Jc6PF/PlUnzExnQ3QcUNY6RdyY5IrUivE21Y8ukH16BTRBSB/Drys5eHz4GC+wvI8AfE81lQFuNlPAAAAABJRU5ErkJggg==',
+        anchor: new Microsoft.Maps.Point(width / 2, height)
+    });
+    pin.setOptions({ iconSize: new Microsoft.Maps.Size(width, height) });
 
-        searchManager.geocode(searchRequest);
-    }
+    //Add the pushpin to the map
+    map.entities.push(pin);
 }
 
 function showGoogleMap(lat_lng) {

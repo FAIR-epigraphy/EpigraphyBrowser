@@ -2,9 +2,14 @@
 const { namedNode, literal, defaultGraph, quad } = DataFactory;
 const store = new N3.Store();
 var allPrefixes = {};
-
+var map = null;
+var infobox = null;
 //////////////////////////////////////////////////////////////////////////
-loadData("data/data.txt");
+
+setTimeout(() => {
+    map = new Microsoft.Maps.Map('#map', {});
+    loadData("data/data.txt");
+}, 300);
 
 function loadData(file) {
     $("#data").load(file, function (responseTxt, statusTxt, xhr) {
@@ -100,19 +105,14 @@ function getObjectValue(predicate, graph) {
     }
 }
 
-function loadInscriptionMap (allData) {
+function loadInscriptionMap(allData) {
     //console.log(allData);
     //const myLatLng = { lat: -25.363, lng: 131.044 };
     var legend = document.getElementById("legend");
     var uniqueLanguages = [];
     var commonInscriptions = [];
 
-    var map = null;
-
-    var infoWindow = new google.maps.InfoWindow({
-        content: "",
-        disableAutoPan: true,
-    });
+    //var map = null;
 
     //// Show Map
     $('#map').hide();
@@ -139,6 +139,18 @@ function loadInscriptionMap (allData) {
             //        lat_lng = lt_lg
             //    }
             //}
+
+            if (isNaN(lat_lng[0]) || isNaN(lat_lng[1])) {
+                let lt_lg = await getLatLng(inscription.foundAt);
+                if (lt_lg !== undefined && lt_lg !== null && lt_lg.length > 0) {
+                    if (lt_lg.length >= 2) {
+                        lat_lng = [lt_lg[0][1], lt_lg[0][0]]
+                    }
+                    else {
+                        lat_lng = lt_lg
+                    }
+                }
+            }
 
             if (commonInscriptions.length === 0) {
                 let dictTMID = { tmId: 0, lat_lng: '', inscriptions: [] };
@@ -173,9 +185,22 @@ function loadInscriptionMap (allData) {
             //break;
         }
 
+        map.setView({
+            center: new Microsoft.Maps.Location(commonInscriptions[0].lat_lng[0], commonInscriptions[0].lat_lng[1]),
+            zoom: 4
+        });
+
+        infobox = new Microsoft.Maps.Infobox(map.getCenter(), {
+            visible: false
+        });
+
+        // Show the info window on the map
+        infobox.setMap(map);
+
         for (let commonIns of commonInscriptions) {
             uniqueLanguages.push(commonIns.inscriptions[0].language)
-            showGoogleMap(commonIns.lat_lng, commonIns.inscriptions);
+            showBingMap(commonIns.lat_lng, commonIns.inscriptions);
+            //}, 300)
         }
 
         uniqueLanguages = [...new Set(uniqueLanguages)];
@@ -184,8 +209,8 @@ function loadInscriptionMap (allData) {
             div.innerHTML = '<img src="' + getDisplayIcon(l) + '"> ' + getLanguageName(l);
             legend.appendChild(div);
         }
-        map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
-        
+        //map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+
         //alert(uniqueLanguages)
     }
 
@@ -224,6 +249,55 @@ function loadInscriptionMap (allData) {
             infoWindow.open(map, marker);
         });
 
+    }
+
+
+    function showBingMap(lat_lng, inscriptions) {
+        const myLatLng = { lat: parseFloat(lat_lng[0]), lng: parseFloat(lat_lng[1]) };
+        //map.setOptions({ center: new Microsoft.Maps.Location(myLatLng.lat, myLatLng.lng) });
+        //var center = map.getCenter();
+        var width = 30; // Change this value to your desired width
+        var height = 40; // Change this value to your desired height
+
+        //Create custom Pushpin
+        var pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(myLatLng.lat, myLatLng.lng), {
+            icon: getDisplayIcon(inscriptions[0].language),
+        });
+        //pin.setOptions({ iconSize: new Microsoft.Maps.Size(width, height) });
+
+        // Add a click event handler to each pushpin
+        Microsoft.Maps.Events.addHandler(pin, 'click', function (e) {
+            // Close any existing info window
+            if (infobox) {
+                infobox.setOptions({ visible: false });
+            }
+
+            let ins = '<div style="width:250px;max-height: 200px;">';
+            for (let inscription of inscriptions) {
+                ins += `
+                            <a href="${inscription.inscriptionURI}" target="_blank" class="text-decoration-none" title="${inscription.inscriptionLabel}">${inscription.inscriptionLabel.length <= 50 ? inscription.inscriptionLabel : inscription.inscriptionLabel.substring(0, 49) + '...'}</a> <br />
+                           <b>Inscription Id:</b> ${getInscriptionId(inscription.inscriptionId)} <br />
+                           <b>Trismegistos Id:</b> ${getTrismegistosID(inscription.tmId)}
+                        <hr />`;
+            }
+            ins += '</div>';
+
+            // Create an info window with HTML content
+            // infobox = new Microsoft.Maps.Infobox(e.target.getLocation(), {
+            //     title: '',
+            //     description: ins,
+            //     visible: true
+            // });
+            infobox.setOptions({
+                location: e.target.getLocation(),
+                title: '',
+                description: ins,
+                visible: true
+            });
+            
+        });
+        //Add the pushpin to the map
+        map.entities.push(pin);
     }
 
     function getDisplayIcon(language) {

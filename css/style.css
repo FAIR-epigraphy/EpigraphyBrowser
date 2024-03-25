@@ -275,3 +275,21 @@ footer {
     z-index: 9998;
     /* Ensure overlay is below the modal */
 }
+
+#legend{
+    z-index: 1000000;
+    position: absolute;
+    top: 50%;
+    /* margin-left: 85%; */
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    max-width: 200px;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 12px;
+    pointer-events: auto !important;
+}
+
+#legend div a{
+    color: white;
+}
