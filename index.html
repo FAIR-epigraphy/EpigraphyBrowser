@@ -26,7 +26,8 @@
             <a class="navbar-brand" href="#">
                 <img style="height: 50px;width: 50px;" src="images/FAIRlogo.png" alt="inscriptiones.org">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+            <button id="btnMobileMenu" class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapsibleNavbar">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="collapsibleNavbar">
@@ -64,7 +65,7 @@
         <div class="container-fluid">
             <p class="text-muted">
                 <!--<a href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/88x31.png"></a><br>Unless specified otherwise, content in <a xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://nomisma.org">Nomisma.org</a> is licensed under a <a xmlns:cc="http://creativecommons.org/ns#" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a>.-->
-               <a href="https://inscriptiones.org" target="_blank"> inscriptiones.org </a>
+                <a href="https://inscriptiones.org" target="_blank"> inscriptiones.org </a>
             </p>
         </div>
     </footer>
@@ -134,10 +135,12 @@
         //////////////////////////////////////////////////////////////////
 
         if (window.location.href.split('#').length > 1) {
-            if (window.location.href.split('#')[1] === "")
+            if (window.location.href.split('#')[1] === "") {
                 navigatePage('sparql', null)
-            else
+            }
+            else {
                 navigatePage(window.location.href.split('#')[1], null)
+            }
         }
         else {
             $('#content-place').load('about.html')
@@ -181,6 +184,9 @@
 
             window.history.pushState("data", "Title", new_url);
             document.title = `inscriptiones.org | ${pageName.toUpperCase()}`;
+            if (document.getElementById('btnMobileMenu').nextElementSibling.classList.contains('show')) {
+                document.getElementById('btnMobileMenu').click();
+            }
         }
 
         function get_hostname(url) {
